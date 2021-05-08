@@ -1,49 +1,40 @@
-﻿using System;
+﻿using Singleton;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ObjectSelector : MonoBehaviour
 {
-    [SerializeField] private int mouseButtonToSelect;
-
     private Camera mainCamera;
-    private MovableObject selectedObject;
+    private UserInput userInput;
 
-    public Action<MovableObject> ObjectSelected; 
-
-    public MovableObject SelectedObject
-    {
-        get
-        {
-            return selectedObject;
-        }
-        set
-        {
-            selectedObject = value;
-            ObjectSelected?.Invoke(selectedObject);
-            Debug.Log($"Object selected {selectedObject.name}");
-        }
-    }
+    public event Action<MovableObject> ObjectSelected; 
 
     private void Start()
     {
         mainCamera = Camera.main;
+        userInput = S.DI<UserInput>();
+
+        userInput.SelectorButtonClicked += OnSelectorButtonClicked;
     }
 
-    private void Update()
+    private void OnDestroy()
     {
-        if (Input.GetMouseButtonDown(mouseButtonToSelect))
+        userInput.SelectorButtonClicked -= OnSelectorButtonClicked;
+    }
+
+    private void OnSelectorButtonClicked()
+    {
+        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        Physics.Raycast(ray, out hit);
+
+        if (hit.collider != null && hit.collider.TryGetComponent(out MovableObject movableObject))
         {
-            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-
-            Physics.Raycast(ray, out hit);
-
-            if(hit.collider != null && hit.collider.TryGetComponent(out MovableObject movableObject))
-            {
-                SelectedObject = movableObject;
-            }
+            ObjectSelected?.Invoke(movableObject);
+            Debug.Log($"Object selected {movableObject.name}");
         }
     }
 }
