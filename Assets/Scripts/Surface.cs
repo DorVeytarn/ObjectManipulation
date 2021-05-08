@@ -4,15 +4,8 @@ using UnityEngine;
 
 public class Surface : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] private SurfaceType type;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public SurfaceType Type => type;
 }
+
