@@ -12,6 +12,7 @@ public abstract class MovementType
     protected Rigidbody targetRigidbody;
     protected MovableObject movable;
 
+
     public virtual void Init(MovableObjectData objectData)
     {
         mainCamera = Camera.main;
@@ -35,10 +36,16 @@ public class FreeMovement : MovementType
     private Vector3 originalTargetPosition;
     private float selectionDistance;
     private Vector3 originalScreenTargetPosition;
+    private Vector3 originalEulerAngles;
 
     public override void Init(MovableObjectData objectData)
     {
         base.Init(objectData);
+
+        originalEulerAngles = targetObject.transform.rotation.eulerAngles;
+        targetObject.transform.rotation = Quaternion.Euler(0, originalEulerAngles.y, originalEulerAngles.z);
+
+        UserInput.Instance.ResetRotationKeyClicked += ResetRotation;
 
         targetRigidbody.useGravity = false;
 
@@ -46,20 +53,42 @@ public class FreeMovement : MovementType
 
         selectionDistance = Vector3.Distance(targetObject.transform.position, mainCamera.transform.position);
         originalScreenTargetPosition = mainCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,
-                                                                                   Input.mousePosition.y,
-                                                                                   selectionDistance));
+                                                                                 Input.mousePosition.y,
+                                                                                 selectionDistance));
     }
 
     public override void Move()
     {
-        Vector3 mousePositionOffset = mainCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, selectionDistance)) - originalScreenTargetPosition;
-        targetRigidbody.velocity = (originalTargetPosition + mousePositionOffset - targetRigidbody.transform.position) * speed * Time.deltaTime;
+        if (UserInput.IsFreeRotation)
+            Rotate();
+        else
+        {
+            Vector3 mousePositionOffset = mainCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, selectionDistance)) - originalScreenTargetPosition;
+            targetRigidbody.velocity = (originalTargetPosition + mousePositionOffset - targetRigidbody.transform.position) * speed * Time.deltaTime;
+        }
     }
 
     public override void EndMove()
     {
         targetRigidbody.velocity = Vector3.down * dropVelocity;
         targetRigidbody.useGravity = true;
+
+        UserInput.Instance.ResetRotationKeyClicked -= ResetRotation;
+    }
+
+    public void Rotate()
+    {
+        targetRigidbody.velocity = Vector3.zero;
+
+        targetObject.transform.Rotate(Input.GetAxis(UserInput.VERTICAL_AXIS) * targetObjectData.RotatingSpeed,
+                                      Input.GetAxis(UserInput.HORIZONTAL_AXIS) * targetObjectData.RotatingSpeed,
+                                      0, Space.World);
+
+    }
+
+    private void ResetRotation()
+    {
+        targetObject.transform.rotation = Quaternion.Euler(originalEulerAngles);
     }
 }
 
@@ -90,10 +119,10 @@ public class StickingMovement : MovementType
                 else
                     return;
 
+            targetObject.transform.forward = hit.normal;
+
             targetRigidbody.velocity = (hit.point - targetRigidbody.transform.position) * speed * Time.fixedDeltaTime;
         }
-
-        Debug.DrawRay(ray.origin, ray.direction * 100);
     }
 
     public override void EndMove()
