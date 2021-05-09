@@ -8,6 +8,9 @@ public class ObjectMover : MonoBehaviour
     private ObjectSelector objectSelector;
     private UserInput userInput;
     private MovableObject currentObject;
+    private FreeMovement freeMovement;
+    private StickingMovement stickingMovement;
+
 
     private void Start()
     {
@@ -16,6 +19,9 @@ public class ObjectMover : MonoBehaviour
 
         objectSelector.ObjectSelected += OnObjectSelected;
         userInput.MovementKeyActivated += OnMovementKeyActivated;
+
+        freeMovement = new FreeMovement();
+        stickingMovement = new StickingMovement();
     }
 
     private void OnDestroy()
@@ -31,10 +37,10 @@ public class ObjectMover : MonoBehaviour
         switch (movementType)
         {
             case UserInput.MovementType.Free:
-                newType = new FreeMovement();
+                newType = freeMovement;
                 break;
             case UserInput.MovementType.Sticking:
-                newType = new StickingMovement();
+                newType = stickingMovement;
                 break;
         }
 
