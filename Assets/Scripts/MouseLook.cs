@@ -1,12 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Singleton;
 
 public class MouseLook : MonoBehaviour
 {
-    private const string MOUSE_VERTICAL_AXIS = "Mouse Y";
-    private const string MOUSE_HORIZONTAL_AXIS = "Mouse X";
-
     [SerializeField] private GameObject target;
 
     [Header("Rotate Settings")]
@@ -20,12 +18,12 @@ public class MouseLook : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButton(1))
+        if (UserInput.IsFreeRotation == false && Input.GetMouseButton(1))
         {
-            yRotate -= Input.GetAxis(MOUSE_VERTICAL_AXIS) * sensitivityY;
+            yRotate -= Input.GetAxis(UserInput.MOUSE_VERTICAL_AXIS) * sensitivityY;
             yRotate = ClampAngle(yRotate, yRotationLimite.x, yRotationLimite.y);
 
-            xRotate += Input.GetAxis(MOUSE_HORIZONTAL_AXIS) * sensitivityX;
+            xRotate += Input.GetAxis(UserInput.MOUSE_HORIZONTAL_AXIS) * sensitivityX;
             xRotate = ClampAngle(xRotate, xRotationLimite.x, xRotationLimite.y);
 
             target.transform.rotation = Quaternion.Euler(0, xRotate, yRotate);

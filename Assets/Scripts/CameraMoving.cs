@@ -6,13 +6,29 @@ public class CameraMoving : MonoBehaviour
 {
     [SerializeField] private float speed;
 
-    private void FixedUpdate()
+    private float flyingAxis;
+
+    private void Update()
     {
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        float moveVertical = Input.GetAxis("Vertical");
 
-        Vector3 movement = new Vector3(-moveVertical, 0.0f, moveHorizontal);
+        if (Input.GetKey(KeyCode.Q))
+            flyingAxis = 1;
 
-        transform.Translate(movement * speed * Time.fixedDeltaTime);
+        if (Input.GetKey(KeyCode.E))
+            flyingAxis = -1;
+
+        if (Input.GetKeyUp(KeyCode.Q) || Input.GetKeyUp(KeyCode.E))
+            flyingAxis = 0;
+
+        if (UserInput.IsFreeRotation == false)
+        {
+            float moveHorizontal = Input.GetAxis(UserInput.HORIZONTAL_AXIS);
+            float moveVertical = Input.GetAxis(UserInput.VERTICAL_AXIS);
+
+            Vector3 movement = new Vector3(-moveVertical, flyingAxis, moveHorizontal);
+
+            transform.Translate(movement * speed * Time.fixedDeltaTime);
+        }
+
     }
 }
