@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Singleton;
 
 [System.Serializable]
 public class MovableObjectData
 {
     [SerializeField] private SurfaceType objectType;
     [SerializeField] private float movingSpeed;
+    [SerializeField] private float rotatingSpeed;
 
     [Header("Physics")]
     [SerializeField] private Rigidbody rigidbodySelf;
@@ -22,6 +20,7 @@ public class MovableObjectData
     public MovableObject MovableObject { get; private set; }
 
     public float MovingSpeed => movingSpeed;
+    public float RotatingSpeed => rotatingSpeed;
     public Rigidbody Rigidbody => rigidbodySelf;
     public SurfaceType ObjectSurfaceType => objectType;
     public Collider SelfCollider => selfCollider;
@@ -69,6 +68,9 @@ public class MovableObject : MonoBehaviour
             Debug.LogError($"MovementType on {name} is null!");
             return;
         }
+
+        if(type != MovementType)
+            type.Init(objectData);
 
         MovementType = type;
 
