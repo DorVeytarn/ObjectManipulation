@@ -34,7 +34,6 @@ public class ObjectSelector : MonoBehaviour
         if (hit.collider != null && hit.collider.TryGetComponent(out MovableObject movableObject))
         {
             ObjectSelected?.Invoke(movableObject);
-            Debug.Log($"Object selected {movableObject.name}");
         }
     }
 }
