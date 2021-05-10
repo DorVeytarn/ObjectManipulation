@@ -23,6 +23,8 @@ public abstract class MovementType
         targetRigidbody = targetObjectData.Rigidbody;
         speed = targetObjectData.MovingSpeed;
         movable = targetObjectData.MovableObject;
+
+        targetRigidbody.isKinematic = false;
     }
 
     public abstract void Move();
@@ -41,9 +43,6 @@ public class FreeMovement : MovementType
     public override void Init(MovableObjectData objectData)
     {
         base.Init(objectData);
-
-        originalEulerAngles = targetObject.transform.rotation.eulerAngles;
-        targetObject.transform.rotation = Quaternion.Euler(0, originalEulerAngles.y, originalEulerAngles.z);
 
         UserInput.Instance.ResetRotationKeyClicked += ResetRotation;
 
@@ -74,15 +73,22 @@ public class FreeMovement : MovementType
         targetRigidbody.useGravity = true;
 
         UserInput.Instance.ResetRotationKeyClicked -= ResetRotation;
+
+        targetRigidbody.isKinematic = false;
     }
 
     public void Rotate()
     {
         targetRigidbody.velocity = Vector3.zero;
 
-        targetObject.transform.Rotate(Input.GetAxis(UserInput.VERTICAL_AXIS) * targetObjectData.RotatingSpeed,
-                                      Input.GetAxis(UserInput.HORIZONTAL_AXIS) * targetObjectData.RotatingSpeed,
-                                      0, Space.World);
+        //вращаем каждую ось отдельно + относительно камеры, другие способы визуально неясны
+        targetObject.transform.RotateAround(targetObject.transform.position,
+                                            mainCamera.transform.up, 
+                                            Input.GetAxis(UserInput.HORIZONTAL_AXIS) * targetObjectData.RotatingSpeed);
+
+        targetObject.transform.RotateAround(targetObject.transform.position,
+                                            mainCamera.transform.right,
+                                            Input.GetAxis(UserInput.VERTICAL_AXIS) * targetObjectData.RotatingSpeed);
 
     }
 
@@ -117,7 +123,9 @@ public class StickingMovement : MovementType
                 if (hit.collider.TryGetComponent(out Surface surface) && surface.Type == targetObjectData.ObjectSurfaceType)
                     stickingSurface = hit.collider;
                 else
+                {
                     return;
+                }
 
             targetObject.transform.forward = hit.normal;
 
@@ -129,5 +137,7 @@ public class StickingMovement : MovementType
     {
         stickingSurface = null;
         targetRigidbody.velocity = Vector3.zero;
+
+        targetRigidbody.isKinematic = false;
     }
 }
